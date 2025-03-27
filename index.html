@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrôle LED ESP32</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #222; color: white; }
+        button { margin: 10px; padding: 15px; font-size: 18px; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 5px; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h2>Contrôle des LEDs</h2>
+    <button onclick="sendEffect('rainbow')">🌈 Arc-en-Ciel</button>
+    <button onclick="sendEffect('flash')">⚡ Flash RGB</button>
+    <button onclick="sendEffect('wave')">🌊 Effet Vague</button>
+    <button onclick="sendEffect('pulse')">💓 Pulsation</button>
+    
+    <script>
+        function sendEffect(effect) {
+            alert("Commande envoyée: " + effect);
+        }
+    </script>
+</body>
+</html>
