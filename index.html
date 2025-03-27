@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contrôle LED ESP32 Pro</title>
+    <title>Contrôle LED ESP32 - Interface Avancée</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -28,47 +28,112 @@
             margin: 0 auto;
         }
 
-        /* Titre principal */
-        .main-title {
+        /* Titre interactif */
+        .led-preview {
+            font-size: 2.5em;
             text-align: center;
-            color: var(--primary);
-            margin: 0 0 30px 0;
-            padding: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+            transition: all 0.3s ease;
             position: relative;
+            overflow: hidden;
         }
 
-        .rainbow-text {
-            background: linear-gradient(90deg, 
-                #ff0000, #ff8000, #ffff00, 
-                #00ff00, #00ffff, #0000ff, 
-                #8000ff, #ff0080);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            animation: rainbow-slide 8s linear infinite;
-            background-size: 400% auto;
+        .led-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: currentColor;
+            opacity: 0.6;
         }
 
-        @keyframes rainbow-slide {
+        .led-title {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .led-status {
+            display: block;
+            font-size: 0.6em;
+            opacity: 0.8;
+        }
+
+        /* Animations */
+        @keyframes rainbowSlide {
             0% { background-position: 0% 50%; }
             100% { background-position: 400% 50%; }
         }
 
-        /* Panneau de contrôle */
+        @keyframes strobeFlash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        @keyframes colorPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes lavaFlow {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        .rainbow-effect {
+            background: linear-gradient(90deg, 
+                #ff0000, #ff8000, #ffff00, 
+                #00ff00, #00ffff, #0000ff, 
+                #8000ff, #ff0080);
+            background-size: 400% 400%;
+            animation: rainbowSlide 5s linear infinite;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .strobe-effect {
+            animation: strobeFlash 0.5s infinite;
+        }
+
+        .pulse-effect {
+            animation: colorPulse 1s infinite;
+        }
+
+        .lava-effect {
+            animation: lavaFlow 8s infinite linear;
+        }
+
+        /* Interface de contrôle */
         .control-panel {
             background: var(--light-bg);
             border-radius: 12px;
             padding: 25px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        /* Sélection de couleur */
+        .control-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Sélecteur de couleur */
         .color-selector {
             display: flex;
             gap: 15px;
             align-items: center;
-            margin-bottom: 25px;
         }
 
         .color-preview {
@@ -87,59 +152,52 @@
         /* Boutons d'effets */
         .effects-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 12px;
-            margin: 25px 0;
         }
 
         .effect-btn {
             padding: 15px 10px;
             border: none;
             border-radius: 8px;
-            background: var(--light-bg);
+            background: rgba(255, 255, 255, 0.1);
             color: var(--text);
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
         }
 
         .effect-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .effect-btn.active {
             background: var(--primary);
             color: var(--text-dark);
-            font-weight: 600;
+            font-weight: bold;
             box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
         }
 
-        /* Contrôles */
+        /* Contrôles BPM et luminosité */
         .controls-row {
             display: flex;
             gap: 20px;
-            margin-top: 25px;
             flex-wrap: wrap;
         }
 
-        .control-section {
+        .slider-control {
             flex: 1;
             min-width: 200px;
         }
 
-        .slider-control {
-            width: 100%;
-            margin-top: 8px;
-        }
-
-        /* Contrôle BPM */
         .bpm-control {
-            background: var(--light-bg);
+            background: rgba(0, 0, 0, 0.2);
             padding: 15px;
             border-radius: 8px;
+            flex: 1;
+            min-width: 200px;
         }
 
         .bpm-input {
@@ -148,7 +206,7 @@
             margin-top: 5px;
             border-radius: 6px;
             border: 1px solid var(--primary);
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.3);
             color: var(--text);
         }
 
@@ -161,7 +219,7 @@
         .multiplier {
             padding: 6px 12px;
             border-radius: 6px;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.1);
             cursor: pointer;
             transition: all 0.2s ease;
             font-size: 0.9em;
@@ -170,240 +228,310 @@
         .multiplier.active {
             background: var(--primary);
             color: var(--text-dark);
-            font-weight: 600;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-top: 8px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="main-title">
-            <span class="rainbow-text">Contrôle LED Pro</span>
-        </h1>
+        <!-- Titre interactif -->
+        <div id="ledPreview" class="led-preview" style="color: #00ff88;">
+            <span id="ledTitle" class="led-title">Couleur Unie</span>
+            <span id="ledStatus" class="led-status">#00ff88 | Lum: 255</span>
+        </div>
 
+        <!-- Panneau de contrôle -->
         <div class="control-panel">
             <!-- Sélecteur de couleur -->
-            <div class="color-selector">
-                <input type="color" id="colorPicker" value="#00ff88" class="color-preview">
-                <button class="effect-btn" onclick="setSolidColor()">
-                    <i class="fas fa-fill-drip"></i> Couleur Unie
-                </button>
+            <div class="control-section">
+                <h3 class="section-title"><i class="fas fa-palette"></i> Couleur Unie</h3>
+                <div class="color-selector">
+                    <input type="color" id="colorPicker" value="#00ff88" class="color-preview">
+                    <button id="solidColorBtn" class="effect-btn active">
+                        <i class="fas fa-fill-drip"></i>
+                        <span>Appliquer</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Effets -->
-            <div class="effects-grid">
-                <button class="effect-btn" data-effect="rainbow" onclick="toggleEffect(this)">
-                    <i class="fas fa-rainbow"></i>
-                    <span>Arc-en-Ciel</span>
-                </button>
-                <button class="effect-btn" data-effect="strobe" onclick="toggleEffect(this)">
-                    <i class="fas fa-stroopwafel"></i>
-                    <span>Stroboscope</span>
-                </button>
-                <button class="effect-btn" data-effect="pulse" onclick="toggleEffect(this)">
-                    <i class="fas fa-heartbeat"></i>
-                    <span>Pulsation</span>
-                </button>
-                <button class="effect-btn" data-effect="nebula" onclick="toggleEffect(this)">
-                    <i class="fas fa-galaxy"></i>
-                    <span>Nébuleuse</span>
-                </button>
-                <button class="effect-btn" data-effect="lava" onclick="toggleEffect(this)">
-                    <i class="fas fa-fire"></i>
-                    <span>Lave</span>
-                </button>
+            <div class="control-section">
+                <h3 class="section-title"><i class="fas fa-magic"></i> Effets Dynamiques</h3>
+                <div class="effects-grid">
+                    <button class="effect-btn" data-effect="rainbow">
+                        <i class="fas fa-rainbow"></i>
+                        <span>Arc-en-Ciel</span>
+                    </button>
+                    <button class="effect-btn" data-effect="strobe">
+                        <i class="fas fa-stroopwafel"></i>
+                        <span>Stroboscope</span>
+                    </button>
+                    <button class="effect-btn" data-effect="pulse">
+                        <i class="fas fa-heartbeat"></i>
+                        <span>Pulsation</span>
+                    </button>
+                    <button class="effect-btn" data-effect="nebula">
+                        <i class="fas fa-galaxy"></i>
+                        <span>Nébuleuse</span>
+                    </button>
+                    <button class="effect-btn" data-effect="lava">
+                        <i class="fas fa-fire"></i>
+                        <span>Lave</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Contrôles -->
             <div class="controls-row">
                 <!-- Luminosité -->
-                <div class="control-section">
-                    <label><i class="fas fa-sun"></i> Luminosité</label>
-                    <input type="range" min="0" max="255" value="255" class="slider-control" oninput="updateBrightness(this.value)">
+                <div class="slider-control">
+                    <h3 class="section-title"><i class="fas fa-sun"></i> Luminosité</h3>
+                    <input type="range" min="0" max="255" value="255" id="brightnessSlider">
                 </div>
 
                 <!-- BPM -->
                 <div class="bpm-control">
-                    <label><i class="fas fa-heartbeat"></i> BPM (30-300)</label>
+                    <h3 class="section-title"><i class="fas fa-heartbeat"></i> Synchronisation BPM</h3>
                     <input type="number" id="bpmInput" value="120" min="30" max="300" class="bpm-input">
-                    
                     <div class="multipliers">
-                        <div class="multiplier" data-mult="0.25" onclick="setMultiplier(0.25)">1/4x</div>
-                        <div class="multiplier" data-mult="0.5" onclick="setMultiplier(0.5)">1/2x</div>
-                        <div class="multiplier active" data-mult="1" onclick="setMultiplier(1)">1x</div>
-                        <div class="multiplier" data-mult="2" onclick="setMultiplier(2)">2x</div>
+                        <div class="multiplier" data-mult="0.25">1/4x</div>
+                        <div class="multiplier" data-mult="0.5">1/2x</div>
+                        <div class="multiplier active" data-mult="1">1x</div>
+                        <div class="multiplier" data-mult="2">2x</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
- <script>
-    // État global de l'application
-    const appState = {
-        currentEffect: null,
-        currentBPM: 120,
-        currentMultiplier: 1,
-        brightness: 255,
-        currentColor: '#00ff88'
-    };
 
-    // Calcul de la vitesse basée sur le BPM
-    function calculateSpeed() {
-        const bps = appState.currentBPM / 60; // Battements par seconde
-        const interval = 1 / (bps * appState.currentMultiplier);
-        return Math.round(interval * 1000); // Conversion en ms
-    }
-
-    // Gestion des effets
-    async function toggleEffect(button) {
-        try {
-            // Désactivation si c'est le même effet
-            if (appState.currentEffect === button) {
-                button.classList.remove('active');
-                appState.currentEffect = null;
-                await sendCommand('/effect?name=off');
-                updateTitle();
-                return;
-            }
-
-            // Désactiver l'effet précédent
-            if (appState.currentEffect) {
-                appState.currentEffect.classList.remove('active');
-            }
-
-            // Activer le nouvel effet
-            button.classList.add('active');
-            appState.currentEffect = button;
-            
-            const effectName = button.dataset.effect;
-            const speed = calculateSpeed();
-            
-            await sendCommand(`/effect?name=${effectName}&speed=${speed}`);
-            updateTitle();
-            updateVisualFeedback(effectName);
-            
-        } catch (error) {
-            console.error("Erreur lors du changement d'effet:", error);
-            showStatus("Erreur de communication", 'error');
-        }
-    }
-
-    // Définir une couleur unie
-    async function setSolidColor() {
-        try {
-            appState.currentColor = document.getElementById('colorPicker').value;
-            const rgb = hexToRGB(appState.currentColor);
-            
-            // Désactiver tout effet en cours
-            if (appState.currentEffect) {
-                appState.currentEffect.classList.remove('active');
-                appState.currentEffect = null;
-            }
-            
-            await sendCommand(`/color?r=${rgb.r}&g=${rgb.g}&b=${rgb.b}`);
-            updateTitle();
-            updateVisualFeedback('solid');
-            
-        } catch (error) {
-            console.error("Erreur lors du changement de couleur:", error);
-            showStatus("Erreur de communication", 'error');
-        }
-    }
-
-    // Conversion HEX vers RGB
-    function hexToRGB(hex) {
-        return {
-            r: parseInt(hex.substring(1, 3), 16),
-            g: parseInt(hex.substring(3, 5), 16),
-            b: parseInt(hex.substring(5, 7), 16)
+    <script>
+        // État global
+        const state = {
+            currentMode: 'solid',
+            currentColor: '#00ff88',
+            brightness: 255,
+            bpm: 120,
+            multiplier: 1,
+            currentEffect: null
         };
-    }
 
-    // Changer le multiplicateur BPM
-    function setMultiplier(multiplier) {
-        appState.currentMultiplier = multiplier;
-        
-        // Mettre à jour l'interface
-        document.querySelectorAll('.multiplier').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.mult == multiplier);
-        });
-        
-        // Mettre à jour l'effet en cours
-        if (appState.currentEffect) {
-            toggleEffect(appState.currentEffect);
+        // Éléments DOM
+        const elements = {
+            preview: document.getElementById('ledPreview'),
+            title: document.getElementById('ledTitle'),
+            status: document.getElementById('ledStatus'),
+            colorPicker: document.getElementById('colorPicker'),
+            solidColorBtn: document.getElementById('solidColorBtn'),
+            effectBtns: document.querySelectorAll('.effect-btn'),
+            brightnessSlider: document.getElementById('brightnessSlider'),
+            bpmInput: document.getElementById('bpmInput'),
+            multipliers: document.querySelectorAll('.multiplier')
+        };
+
+        // Initialisation
+        function init() {
+            // Écouteurs d'événements
+            elements.colorPicker.addEventListener('input', updateColor);
+            elements.solidColorBtn.addEventListener('click', setSolidColor);
+            elements.effectBtns.forEach(btn => {
+                btn.addEventListener('click', () => toggleEffect(btn));
+            });
+            elements.brightnessSlider.addEventListener('input', updateBrightness);
+            elements.bpmInput.addEventListener('input', updateBPM);
+            elements.multipliers.forEach(btn => {
+                btn.addEventListener('click', () => setMultiplier(btn));
+            });
+
+            // Mettre à jour l'interface
+            updatePreview();
         }
-    }
 
-    // Mettre à jour la luminosité
-    function updateBrightness(value) {
-        appState.brightness = value;
-        if (!appState.currentEffect) {
-            setSolidColor(); // Mettre à jour la couleur avec la nouvelle luminosité
-        }
-        updateTitle();
-    }
-
-    // Feedback visuel
-    function updateVisualFeedback(effect) {
-        const title = document.getElementById('title');
-        
-        // Reset des classes
-        title.className = 'main-title';
-        title.style.color = '';
-        
-        if (effect === 'rainbow') {
-            title.classList.add('rainbow-text');
-        } else if (effect === 'solid') {
-            title.style.color = appState.currentColor;
-        }
-    }
-
-    // Envoyer une commande au serveur
-    async function sendCommand(url) {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        return response;
-    }
-
-    // Mettre à jour le titre
-    function updateTitle() {
-        const title = document.getElementById('title');
-        const modeText = document.getElementById('modeText');
-        const paramsText = document.getElementById('paramsText');
-        
-        if (appState.currentEffect) {
-            const effectName = appState.currentEffect.dataset.effect;
-            const effectNames = {
-                'rainbow': '🌈 Mode Arc-en-Ciel',
-                'strobe': '✨ Mode Stroboscope',
-                'pulse': '💓 Mode Pulsation',
-                'nebula': '🌌 Mode Nébuleuse',
-                'lava': '🌋 Mode Lave'
-            };
-            
-            modeText.textContent = effectNames[effectName] || 'Mode Actif';
-            paramsText.textContent = `BPM: ${appState.currentBPM} ×${appState.currentMultiplier} | Lum: ${appState.brightness}`;
-        } else {
-            modeText.textContent = '🎨 Couleur Unie';
-            paramsText.textContent = `${appState.currentColor} | Lum: ${appState.brightness}`;
-        }
-    }
-
-    // Initialisation
-    document.addEventListener('DOMContentLoaded', () => {
-        // Écouteurs d'événements
-        document.getElementById('bpmInput').addEventListener('input', (e) => {
-            appState.currentBPM = Math.min(300, Math.max(30, e.target.value || 120));
-            if (appState.currentEffect) {
-                toggleEffect(appState.currentEffect);
+        // Mettre à jour la couleur
+        function updateColor(e) {
+            state.currentColor = e.target.value;
+            if (state.currentMode === 'solid') {
+                updatePreview();
+                sendColorToLEDs();
             }
-        });
-        
-        // Initialiser l'interface
-        updateTitle();
-        updateVisualFeedback('solid');
-    });
-</script>
+        }
+
+        // Définir la couleur unie
+        async function setSolidColor() {
+            state.currentMode = 'solid';
+            state.currentEffect = null;
+            
+            // Mettre à jour l'interface
+            updatePreview();
+            resetActiveEffects();
+            elements.solidColorBtn.classList.add('active');
+            
+            // Envoyer la commande
+            await sendColorToLEDs();
+        }
+
+        // Basculer entre les effets
+        async function toggleEffect(button) {
+            const effect = button.dataset.effect;
+            
+            if (state.currentEffect === button) {
+                // Désactiver l'effet si déjà actif
+                state.currentMode = 'solid';
+                state.currentEffect = null;
+                button.classList.remove('active');
+                elements.solidColorBtn.classList.add('active');
+            } else {
+                // Activer le nouvel effet
+                state.currentMode = 'effect';
+                state.currentEffect = button;
+                resetActiveEffects();
+                button.classList.add('active');
+                elements.solidColorBtn.classList.remove('active');
+            }
+            
+            // Mettre à jour l'interface et envoyer la commande
+            updatePreview();
+            await sendEffectToLEDs(effect);
+        }
+
+        // Mettre à jour la luminosité
+        function updateBrightness(e) {
+            state.brightness = e.target.value;
+            updatePreview();
+            
+            if (state.currentMode === 'solid') {
+                sendColorToLEDs();
+            } else {
+                sendEffectToLEDs(state.currentEffect.dataset.effect);
+            }
+        }
+
+        // Mettre à jour le BPM
+        function updateBPM(e) {
+            state.bpm = Math.max(30, Math.min(300, e.target.value || 120));
+            updatePreview();
+            
+            if (state.currentMode === 'effect') {
+                sendEffectToLEDs(state.currentEffect.dataset.effect);
+            }
+        }
+
+        // Définir le multiplicateur
+        function setMultiplier(button) {
+            state.multiplier = parseFloat(button.dataset.mult);
+            
+            // Mettre à jour l'interface
+            elements.multipliers.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            // Mettre à jour l'effet en cours
+            if (state.currentMode === 'effect') {
+                updatePreview();
+                sendEffectToLEDs(state.currentEffect.dataset.effect);
+            }
+        }
+
+        // Mettre à jour l'aperçu LED
+        function updatePreview() {
+            // Calculer la vitesse réelle
+            const realBPM = state.bpm * state.multiplier;
+            const interval = 60 / realBPM;
+            
+            // Appliquer le style selon le mode
+            elements.preview.className = 'led-preview';
+            elements.preview.style.color = state.currentColor;
+            
+            if (state.currentMode === 'solid') {
+                elements.title.textContent = 'Couleur Unie';
+                elements.status.textContent = `${state.currentColor} | Lum: ${state.brightness}`;
+            } else {
+                const effect = state.currentEffect.dataset.effect;
+                elements.title.textContent = getEffectName(effect);
+                elements.status.textContent = `BPM: ${realBPM} | Lum: ${state.brightness}`;
+                
+                // Appliquer l'animation correspondante
+                switch(effect) {
+                    case 'rainbow':
+                        elements.preview.classList.add('rainbow-effect');
+                        elements.preview.style.color = 'transparent';
+                        break;
+                    case 'strobe':
+                        elements.preview.classList.add('strobe-effect');
+                        elements.preview.style.animationDuration = `${interval}s`;
+                        break;
+                    case 'pulse':
+                        elements.preview.classList.add('pulse-effect');
+                        elements.preview.style.animationDuration = `${interval}s`;
+                        break;
+                    case 'lava':
+                        elements.preview.classList.add('lava-effect');
+                        break;
+                    case 'nebula':
+                        elements.preview.style.background = `linear-gradient(45deg, ${state.currentColor}, #8000ff)`;
+                        elements.preview.style.backgroundSize = '400% 400%';
+                        break;
+                }
+            }
+        }
+
+        // Réinitialiser les effets actifs
+        function resetActiveEffects() {
+            elements.effectBtns.forEach(btn => btn.classList.remove('active'));
+        }
+
+        // Envoyer la couleur aux LEDs
+        async function sendColorToLEDs() {
+            const rgb = hexToRGB(state.currentColor);
+            const url = `/color?r=${rgb.r}&g=${rgb.g}&b=${rgb.b}&brightness=${state.brightness}`;
+            await sendCommand(url);
+        }
+
+        // Envoyer l'effet aux LEDs
+        async function sendEffectToLEDs(effect) {
+            const speed = Math.round((60 / (state.bpm * state.multiplier)) * 1000);
+            const url = `/effect?name=${effect}&speed=${speed}&brightness=${state.brightness}`;
+            await sendCommand(url);
+        }
+
+        // Envoyer une commande générale
+        async function sendCommand(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    console.error('Erreur:', response.status);
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+
+        // Helper: Conversion HEX vers RGB
+        function hexToRGB(hex) {
+            return {
+                r: parseInt(hex.substring(1, 3), 16),
+                g: parseInt(hex.substring(3, 5), 16),
+                b: parseInt(hex.substring(5, 7), 16)
+            };
+        }
+
+        // Helper: Nom des effets
+        function getEffectName(effect) {
+            const names = {
+                'rainbow': 'Arc-en-Ciel',
+                'strobe': 'Stroboscope',
+                'pulse': 'Pulsation',
+                'nebula': 'Nébuleuse',
+                'lava': 'Lave'
+            };
+            return names[effect] || 'Effet Actif';
+        }
+
+        // Démarrer l'application
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
