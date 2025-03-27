@@ -5,21 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contrôle LED ESP32</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #222; color: white; }
+        body { font-family: Arial, sans-serif; text-align: center; background: #222; color: white; }
+        h2 { font-size: 24px; }
+        .container { display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
         button { margin: 10px; padding: 15px; font-size: 18px; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 5px; }
         button:hover { background: #0056b3; }
+        input[type="color"] { width: 100px; height: 50px; border: none; cursor: pointer; }
+        .modes { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
+        .mode-btn { background: #444; padding: 15px; border-radius: 10px; cursor: pointer; transition: 0.3s; }
+        .mode-btn:hover { background: #666; }
     </style>
 </head>
 <body>
-    <h2>Contrôle des LEDs</h2>
-    <button onclick="sendEffect('rainbow')">🌈 Arc-en-Ciel</button>
-    <button onclick="sendEffect('flash')">⚡ Flash RGB</button>
-    <button onclick="sendEffect('wave')">🌊 Effet Vague</button>
-    <button onclick="sendEffect('pulse')">💓 Pulsation</button>
-    
+    <h2>🎨 Contrôle des LEDs ESP32</h2>
+    <div class="container">
+        <label>Choisissez une couleur :</label>
+        <input type="color" id="colorPicker" value="#ff0000">
+        <button onclick="sendColor()">🎨 Appliquer</button>
+        
+        <h3>💡 Modes d'effets</h3>
+        <div class="modes">
+            <div class="mode-btn" onclick="sendEffect('rainbow')">🌈 Arc-en-Ciel</div>
+            <div class="mode-btn" onclick="sendEffect('flash')">⚡ Flash RGB</div>
+            <div class="mode-btn" onclick="sendEffect('wave')">🌊 Effet Vague</div>
+            <div class="mode-btn" onclick="sendEffect('pulse')">💓 Pulsation</div>
+            <div class="mode-btn" onclick="sendEffect('strobe')">🔦 Stroboscope</div>
+        </div>
+    </div>
+
     <script>
+        function sendColor() {
+            let color = document.getElementById("colorPicker").value;
+            let r = parseInt(color.substr(1, 2), 16);
+            let g = parseInt(color.substr(3, 2), 16);
+            let b = parseInt(color.substr(5, 2), 16);
+            fetch(`/color?r=${r}&g=${g}&b=${b}`)
+                .then(response => console.log("Couleur envoyée:", color));
+        }
+
         function sendEffect(effect) {
-            alert("Commande envoyée: " + effect);
+            fetch(`/effect?name=${effect}`)
+                .then(response => console.log("Effet envoyé:", effect));
         }
     </script>
 </body>
