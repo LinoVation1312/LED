@@ -8,38 +8,41 @@
     <style>
         :root {
             --primary: #00ff88;
-            --dark-bg: #1a1a2e;
-            --light-bg: rgba(255, 255, 255, 0.1);
+            --dark-bg: #0a0a14;
+            --light-bg: rgba(255, 255, 255, 0.08);
             --text: #ffffff;
-            --text-dark: #111111;
+            --neon-glow: 0 0 10px currentColor, 
+                          0 0 20px currentColor, 
+                          0 0 30px rgba(0, 255, 136, 0.3);
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
             background: var(--dark-bg);
             color: var(--text);
             margin: 0;
             padding: 20px;
             min-height: 100vh;
         }
-
         .container {
             max-width: 600px;
             margin: 0 auto;
         }
 
         /* Titre interactif */
+        /* Titre Néon */
         .led-preview {
-            font-size: 2.5em;
+            font-size: 2.8em;
             text-align: center;
-            padding: 20px;
-            margin-bottom: 30px;
+            padding: 25px;
+            margin: 0 auto 30px;
             border-radius: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
-            transition: all 0.3s ease;
+            width: fit-content;
             position: relative;
-            overflow: hidden;
+            text-shadow: var(--neon-glow);
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
+            font-weight: 700;
         }
 
         .led-preview::before {
@@ -48,15 +51,15 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
+            height: 3px;
             background: currentColor;
-            opacity: 0.6;
+            box-shadow: var(--neon-glow);
+            opacity: 0.8;
         }
 
         .led-title {
             display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
 
         .led-status {
@@ -65,51 +68,118 @@
             opacity: 0.8;
         }
 
-        /* Animations */
-        @keyframes rainbowSlide {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 400% 50%; }
-        }
+/* ANIMATIONS NÉON AVANCÉES */
+@keyframes neon-flicker {
+    0%, 2%, 4%, 6%, 60%, 62%, 64%, 66%, 100% {
+        text-shadow: 
+            0 0 8px currentColor,
+            0 0 16px currentColor,
+            0 0 24px currentColor,
+            0 0 40px rgba(0, 255, 136, 0.6);
+        opacity: 1;
+    }
+    1%, 3%, 5%, 61%, 63%, 65% {
+        text-shadow: 
+            0 0 4px currentColor,
+            0 0 8px currentColor;
+        opacity: 0.8;
+    }
+}
 
-        @keyframes strobeFlash {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
+@keyframes rainbowSlide {
+    0% { 
+        background-position: 0% 50%;
+        filter: hue-rotate(0deg);
+    }
+    50% {
+        background-position: 100% 50%;
+        filter: hue-rotate(180deg);
+    }
+    100% { 
+        background-position: 200% 50%; 
+        filter: hue-rotate(360deg);
+    }
+}
 
-        @keyframes colorPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
+@keyframes strobeFlash {
+    0%, 49%, 51%, 100% { 
+        opacity: 1;
+        text-shadow: 
+            0 0 10px currentColor,
+            0 0 20px currentColor,
+            0 0 30px rgba(0, 255, 136, 0.8);
+    }
+    50% { 
+        opacity: 0.1;
+        text-shadow: none;
+    }
+}
 
-        @keyframes lavaFlow {
-            0% { filter: hue-rotate(0deg); }
-            100% { filter: hue-rotate(360deg); }
-        }
+@keyframes pulseGlow {
+    0%, 100% {
+        transform: scale(1);
+        text-shadow: 
+            0 0 10px currentColor,
+            0 0 20px currentColor;
+    }
+    50% {
+        transform: scale(1.05);
+        text-shadow: 
+            0 0 15px currentColor,
+            0 0 30px currentColor,
+            0 0 45px rgba(0, 255, 136, 0.6);
+    }
+}
 
-        .rainbow-effect {
-            background: linear-gradient(90deg, 
-                #ff0000, #ff8000, #ffff00, 
-                #00ff00, #00ffff, #0000ff, 
-                #8000ff, #ff0080);
-            background-size: 400% 400%;
-            animation: rainbowSlide 5s linear infinite;
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
+/* EFFETS SPÉCIAUX NÉON */
+.rainbow-effect {
+    background: linear-gradient(90deg, 
+        #ff0000, #ff8000, #ffff00, 
+        #00ff00, #00ffff, #0000ff,
+        #8000ff, #ff0080, #ff0000);
+    background-size: 200% 200%;
+    animation: 
+        rainbowSlide 8s linear infinite,
+        neon-flicker 2s infinite alternate;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 700;
+}
 
-        .strobe-effect {
-            animation: strobeFlash 0.5s infinite;
-        }
+.strobe-effect {
+    animation: 
+        strobeFlash 0.3s infinite steps(2),
+        neon-flicker 0.5s infinite alternate;
+}
 
-        .pulse-effect {
-            animation: colorPulse 1s infinite;
-        }
+.pulse-effect {
+    animation: 
+        pulseGlow 1.2s ease-in-out infinite,
+        neon-flicker 1.5s infinite alternate;
+}
 
-        .lava-effect {
-            animation: lavaFlow 8s infinite linear;
-        }
+.lava-effect {
+    background: linear-gradient(90deg, #ff3300, #ff6600, #ff3300);
+    background-size: 200% 200%;
+    animation: 
+        rainbowSlide 6s linear infinite,
+        neon-flicker 1s infinite alternate;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
 
+.nebula-effect {
+    background: linear-gradient(90deg, #3300ff, #aa00ff, #3300ff);
+    background-size: 200% 200%;
+    animation: 
+        rainbowSlide 10s linear infinite,
+        neon-flicker 3s infinite alternate;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
         /* Interface de contrôle */
         .control-panel {
             background: var(--light-bg);
@@ -333,205 +403,189 @@
             multipliers: document.querySelectorAll('.multiplier')
         };
 
-        // Initialisation
-        function init() {
-            // Écouteurs d'événements
-            elements.colorPicker.addEventListener('input', updateColor);
-            elements.solidColorBtn.addEventListener('click', setSolidColor);
-            elements.effectBtns.forEach(btn => {
-                btn.addEventListener('click', () => toggleEffect(btn));
-            });
-            elements.brightnessSlider.addEventListener('input', updateBrightness);
-            elements.bpmInput.addEventListener('input', updateBPM);
-            elements.multipliers.forEach(btn => {
-                btn.addEventListener('click', () => setMultiplier(btn));
-            });
+        // Initialisation avec style néon
+function init() {
+    // Écouteurs d'événements
+    elements.colorPicker.addEventListener('input', updateColor);
+    elements.solidColorBtn.addEventListener('click', setSolidColor);
+    elements.effectBtns.forEach(btn => {
+        btn.addEventListener('click', () => toggleEffect(btn));
+    });
+    elements.brightnessSlider.addEventListener('input', updateBrightness);
+    elements.bpmInput.addEventListener('input', updateBPM);
+    elements.multipliers.forEach(btn => {
+        btn.addEventListener('click', () => setMultiplier(btn));
+    });
 
-            // Mettre à jour l'interface
-            updatePreview();
-        }
+    // Initialisation néon
+    resetTitleStyle();
+    updatePreview();
+}
 
-        // Mettre à jour la couleur
-        function updateColor(e) {
-            state.currentColor = e.target.value;
-            if (state.currentMode === 'solid') {
-                updatePreview();
-                sendColorToLEDs();
-            }
-        }
+// Reset complet du style avec effet néon
+function resetTitleStyle() {
+    const preview = elements.preview;
+    
+    // Réinitialisation complète
+    preview.className = 'led-preview';
+    preview.style.cssText = '';
+    
+    // Style néon de base
+    preview.style.textShadow = '0 0 10px currentColor, 0 0 20px currentColor';
+    preview.style.color = state.currentColor;
+}
 
-        // Définir la couleur unie
-        async function setSolidColor() {
-            state.currentMode = 'solid';
-            state.currentEffect = null;
-            
-            // Mettre à jour l'interface
-            updatePreview();
-            resetActiveEffects();
-            elements.solidColorBtn.classList.add('active');
-            
-            // Envoyer la commande
-            await sendColorToLEDs();
-        }
+// Mise à jour couleur avec néon
+function updateColor(e) {
+    state.currentColor = e.target.value;
+    if (state.currentMode === 'solid') {
+        resetTitleStyle();
+        updatePreview();
+        sendColorToLEDs();
+    }
+}
 
-        // Basculer entre les effets
-        async function toggleEffect(button) {
-            const effect = button.dataset.effect;
-            
-            if (state.currentEffect === button) {
-                // Désactiver l'effet si déjà actif
-                state.currentMode = 'solid';
-                state.currentEffect = null;
-                button.classList.remove('active');
-                elements.solidColorBtn.classList.add('active');
-            } else {
-                // Activer le nouvel effet
-                state.currentMode = 'effect';
-                state.currentEffect = button;
-                resetActiveEffects();
-                button.classList.add('active');
-                elements.solidColorBtn.classList.remove('active');
-            }
-            
-            // Mettre à jour l'interface et envoyer la commande
-            updatePreview();
-            await sendEffectToLEDs(effect);
-        }
+// Couleur unie avec néon
+async function setSolidColor() {
+    state.currentMode = 'solid';
+    state.currentEffect = null;
+    
+    resetTitleStyle();
+    resetActiveEffects();
+    elements.solidColorBtn.classList.add('active');
+    
+    await sendColorToLEDs();
+    updatePreview();
+}
 
-        // Mettre à jour la luminosité
-        function updateBrightness(e) {
-            state.brightness = e.target.value;
-            updatePreview();
-            
-            if (state.currentMode === 'solid') {
-                sendColorToLEDs();
-            } else {
-                sendEffectToLEDs(state.currentEffect.dataset.effect);
-            }
-        }
+// Gestion robuste des effets
+async function toggleEffect(button) {
+    const effect = button.dataset.effect;
+    
+    if (state.currentEffect === button) {
+        // Désactivation
+        state.currentMode = 'solid';
+        state.currentEffect = null;
+        button.classList.remove('active');
+        elements.solidColorBtn.classList.add('active');
+    } else {
+        // Activation
+        state.currentMode = 'effect';
+        state.currentEffect = button;
+        resetActiveEffects();
+        resetTitleStyle(); // Reset avant application nouvel effet
+        button.classList.add('active');
+        elements.solidColorBtn.classList.remove('active');
+    }
+    
+    updatePreview();
+    await sendEffectToLEDs(effect);
+}
 
-        // Mettre à jour le BPM
-        function updateBPM(e) {
-            state.bpm = Math.max(30, Math.min(300, e.target.value || 120));
-            updatePreview();
-            
-            if (state.currentMode === 'effect') {
-                sendEffectToLEDs(state.currentEffect.dataset.effect);
-            }
-        }
+// Mise à jour luminosité avec néon
+function updateBrightness(e) {
+    state.brightness = e.target.value;
+    updatePreview();
+    
+    if (state.currentMode === 'solid') {
+        sendColorToLEDs();
+    } else {
+        sendEffectToLEDs(state.currentEffect.dataset.effect);
+    }
+}
 
-        // Définir le multiplicateur
-        function setMultiplier(button) {
-            state.multiplier = parseFloat(button.dataset.mult);
-            
-            // Mettre à jour l'interface
-            elements.multipliers.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            
-            // Mettre à jour l'effet en cours
-            if (state.currentMode === 'effect') {
-                updatePreview();
-                sendEffectToLEDs(state.currentEffect.dataset.effect);
-            }
-        }
+// Mise à jour BPM avec gestion néon
+function updateBPM(e) {
+    state.bpm = Math.max(30, Math.min(300, e.target.value || 120));
+    updatePreview();
+    
+    if (state.currentMode === 'effect') {
+        sendEffectToLEDs(state.currentEffect.dataset.effect);
+    }
+}
 
-        // Mettre à jour l'aperçu LED
-        function updatePreview() {
-            // Calculer la vitesse réelle
-            const realBPM = state.bpm * state.multiplier;
-            const interval = 60 / realBPM;
-            
-            // Appliquer le style selon le mode
-            elements.preview.className = 'led-preview';
-            elements.preview.style.color = state.currentColor;
-            
-            if (state.currentMode === 'solid') {
-                elements.title.textContent = 'Couleur Unie';
-                elements.status.textContent = `${state.currentColor} | Lum: ${state.brightness}`;
-            } else {
-                const effect = state.currentEffect.dataset.effect;
-                elements.title.textContent = getEffectName(effect);
-                elements.status.textContent = `BPM: ${realBPM} | Lum: ${state.brightness}`;
+// Multiplicateur avec sync néon
+function setMultiplier(button) {
+    state.multiplier = parseFloat(button.dataset.mult);
+    
+    elements.multipliers.forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+    
+    if (state.currentMode === 'effect') {
+        updatePreview();
+        sendEffectToLEDs(state.currentEffect.dataset.effect);
+    }
+}
+
+// Nouvelle version de updatePreview avec néon
+function updatePreview() {
+    resetTitleStyle(); // Reset garantissant aucune accumulation
+    
+    const realBPM = state.bpm * state.multiplier;
+    const interval = 60 / realBPM;
+    
+    if (state.currentMode === 'solid') {
+        elements.title.textContent = 'COULEUR UNIE';
+        elements.status.textContent = `${state.currentColor.toUpperCase()} | LUM: ${state.brightness}`;
+        elements.preview.style.color = state.currentColor;
+        elements.preview.style.textShadow = `0 0 10px ${state.currentColor}, 0 0 20px ${state.currentColor}`;
+    } else {
+        const effect = state.currentEffect.dataset.effect;
+        elements.title.textContent = getEffectName(effect).toUpperCase();
+        elements.status.textContent = `BPM: ${realBPM} | LUM: ${state.brightness}`;
+        
+        // Application des effets avec style néon
+        switch(effect) {
+            case 'rainbow':
+                elements.preview.classList.add('rainbow-effect');
+                elements.preview.style.textShadow = 'none';
+                break;
                 
-                // Appliquer l'animation correspondante
-                switch(effect) {
-                    case 'rainbow':
-                        elements.preview.classList.add('rainbow-effect');
-                        elements.preview.style.color = 'transparent';
-                        break;
-                    case 'strobe':
-                        elements.preview.classList.add('strobe-effect');
-                        elements.preview.style.animationDuration = `${interval}s`;
-                        break;
-                    case 'pulse':
-                        elements.preview.classList.add('pulse-effect');
-                        elements.preview.style.animationDuration = `${interval}s`;
-                        break;
-                    case 'lava':
-                        elements.preview.classList.add('lava-effect');
-                        break;
-                    case 'nebula':
-                        elements.preview.style.background = `linear-gradient(45deg, ${state.currentColor}, #8000ff)`;
-                        elements.preview.style.backgroundSize = '400% 400%';
-                        break;
-                }
-            }
+            case 'strobe':
+                elements.preview.classList.add('strobe-effect');
+                elements.preview.style.animationDuration = `${interval}s`;
+                elements.preview.style.color = state.currentColor;
+                break;
+                
+            case 'pulse':
+                elements.preview.classList.add('pulse-effect');
+                elements.preview.style.animationDuration = `${interval}s`;
+                elements.preview.style.color = state.currentColor;
+                break;
+                
+            case 'lava':
+                elements.preview.style.color = '#ff5500';
+                elements.preview.style.textShadow = '0 0 10px #ff5500, 0 0 20px #ff5500';
+                break;
+                
+            case 'nebula':
+                elements.preview.style.color = '#8000ff';
+                elements.preview.style.textShadow = '0 0 10px #8000ff, 0 0 20px #8000ff';
+                break;
         }
+    }
+}
 
-        // Réinitialiser les effets actifs
-        function resetActiveEffects() {
-            elements.effectBtns.forEach(btn => btn.classList.remove('active'));
-        }
+// Helper: Conversion HEX vers RGB
+function hexToRGB(hex) {
+    return {
+        r: parseInt(hex.substring(1, 3), 16),
+        g: parseInt(hex.substring(3, 5), 16),
+        b: parseInt(hex.substring(5, 7), 16)
+    };
+}
 
-        // Envoyer la couleur aux LEDs
-        async function sendColorToLEDs() {
-            const rgb = hexToRGB(state.currentColor);
-            const url = `/color?r=${rgb.r}&g=${rgb.g}&b=${rgb.b}&brightness=${state.brightness}`;
-            await sendCommand(url);
-        }
+// Helper: Noms des effets
+function getEffectName(effect) {
+    const names = {
+        'rainbow': 'ARC-EN-CIEL',
+        'strobe': 'STROBOSCOPE',
+        'pulse': 'PULSATION',
+        'nebula': 'NÉBULEUSE',
+        'lava': 'LAVE'
+    };
+    return names[effect] || 'EFFET ACTIF';
+}
 
-        // Envoyer l'effet aux LEDs
-        async function sendEffectToLEDs(effect) {
-            const speed = Math.round((60 / (state.bpm * state.multiplier)) * 1000);
-            const url = `/effect?name=${effect}&speed=${speed}&brightness=${state.brightness}`;
-            await sendCommand(url);
-        }
-
-        // Envoyer une commande générale
-        async function sendCommand(url) {
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    console.error('Erreur:', response.status);
-                }
-            } catch (error) {
-                console.error('Erreur:', error);
-            }
-        }
-
-        // Helper: Conversion HEX vers RGB
-        function hexToRGB(hex) {
-            return {
-                r: parseInt(hex.substring(1, 3), 16),
-                g: parseInt(hex.substring(3, 5), 16),
-                b: parseInt(hex.substring(5, 7), 16)
-            };
-        }
-
-        // Helper: Nom des effets
-        function getEffectName(effect) {
-            const names = {
-                'rainbow': 'Arc-en-Ciel',
-                'strobe': 'Stroboscope',
-                'pulse': 'Pulsation',
-                'nebula': 'Nébuleuse',
-                'lava': 'Lave'
-            };
-            return names[effect] || 'Effet Actif';
-        }
-
-        // Démarrer l'application
-        document.addEventListener('DOMContentLoaded', init);
-    </script>
-</body>
-</html>
+// Initialisation
+document.addEventListener('DOMContentLoaded', init);
