@@ -3,20 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contrôle LED ESP32</title>
+  <title>Contrôle LED VMC Techno</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
       background: #222;
       color: white;
+      margin: 0;
+      padding: 20px;
     }
-    /* Titre interactif */
+
     h2 {
       font-size: 32px;
       transition: all 0.3s ease;
+      margin-bottom: 30px;
     }
-    /* Animations pour le titre */
+
+    /* Animations */
     @keyframes rainbowAnim {
       0%   { color: red; }
       20%  { color: orange; }
@@ -25,112 +29,128 @@
       80%  { color: blue; }
       100% { color: violet; }
     }
-    .rainbow {
-      animation-name: rainbowAnim;
-      animation-timing-function: linear;
-      animation-iteration-count: infinite;
-      /* animation-duration sera défini via JS en fonction du BPM */
-    }
-
     @keyframes pulseAnim {
       0%, 100% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.2); opacity: 0.5; }
     }
-    .pulse {
-      animation-name: pulseAnim;
-      animation-timing-function: ease-in-out;
-      animation-iteration-count: infinite;
-      /* animation-duration sera défini via JS en fonction du BPM */
-    }
-
     @keyframes flashAnim {
       0%, 100% { color: white; }
       50% { color: red; }
     }
-    .flash {
-      animation-name: flashAnim;
-      animation-timing-function: steps(2, start);
-      animation-iteration-count: infinite;
-      /* animation-duration sera défini via JS en fonction du BPM */
-    }
-
-    /* Déjà présent */
     @keyframes strobeAnim {
       0% { opacity: 1; }
       50% { opacity: 0; }
       100% { opacity: 1; }
     }
-    .strobe {
-      animation: strobeAnim 1s infinite;
+    @keyframes waveAnim {
+      0%   { transform: translateY(0); }
+      50%  { transform: translateY(-20px); }
+      100% { transform: translateY(0); }
     }
+    @keyframes status-pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    .rainbow { animation: rainbowAnim linear infinite; }
+    .pulse { animation: pulseAnim ease-in-out infinite; }
+    .flash { animation: flashAnim steps(2) infinite; }
+    .strobe { animation: strobeAnim 1s infinite; }
+    .wave { animation: waveAnim 2s ease-in-out infinite; }
+    .command-active { animation: status-pulse 0.3s ease; }
 
     .container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-top: 20px;
+      gap: 20px;
     }
+
     button, .mode-btn, .multiplier-btn {
-      margin: 10px;
-      padding: 15px;
-      font-size: 18px;
+      margin: 8px;
+      padding: 15px 20px;
+      font-size: 16px;
       background: #007bff;
       color: white;
       border: none;
       cursor: pointer;
-      border-radius: 5px;
+      border-radius: 25px;
+      transition: all 0.2s ease;
     }
-    button:hover, .mode-btn:hover, .multiplier-btn:hover {
-      background: #0056b3;
-    }
-    input[type="color"], input[type="number"] {
-      width: 100px;
-      height: 40px;
-      border: none;
-      cursor: pointer;
-    }
-    .modes, .bpm-section {
+
+    .color-presets {
       display: flex;
-      flex-wrap: wrap;
+      gap: 10px;
       justify-content: center;
-      gap: 10px;
-      margin-top: 20px;
+      margin: 15px 0;
     }
-    .bpm-controls {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 10px;
+
+    .color-swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid #444;
+      transition: transform 0.2s ease;
+    }
+
+    .active-mode {
+      background: #17a2b8 !important;
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #17a2b8;
+    }
+
+    .active-multiplier {
+      background: #28a745 !important;
+      transform: scale(1.1);
+    }
+
+    .error-flash {
+      animation: flashAnim 0.2s steps(2) 3;
+    }
+
+    @media (max-width: 600px) {
+      button, .mode-btn, .multiplier-btn {
+        padding: 12px;
+        font-size: 14px;
+        margin: 5px;
+      }
+      h2 { font-size: 24px; }
     }
   </style>
 </head>
 <body>
-  <!-- Titre interactif -->
-  <h2 id="title">Contrôle des LEDs ESP32</h2>
+  <h2 id="title">VMC Techno Lights</h2>
 
   <div class="container">
-    <!-- Palette de couleur -->
+    <!-- Palette de couleurs -->
     <div>
-      <label>Choisissez une couleur :</label>
       <input type="color" id="colorPicker" value="#ff0000">
-      <button onclick="applyColor()">🎨 Appliquer Couleur</button>
+      <button onclick="applyColor()">🎨 Appliquer</button>
+      <div class="color-presets">
+        <div class="color-swatch" style="background: #ff0000" onclick="setPresetColor('#ff0000')"></div>
+        <div class="color-swatch" style="background: #00ff00" onclick="setPresetColor('#00ff00')"></div>
+        <div class="color-swatch" style="background: #0000ff" onclick="setPresetColor('#0000ff')"></div>
+        <div class="color-swatch" style="background: #ff00ff" onclick="setPresetColor('#ff00ff')"></div>
+        <div class="color-swatch" style="background: #ffff00" onclick="setPresetColor('#ffff00')"></div>
+      </div>
     </div>
 
     <!-- Modes d'effets -->
-    <h3>Modes d'effets</h3>
     <div class="modes">
+      <div class="mode-btn" onclick="selectEffect('constant')">💡 Lumière Fixe</div>
       <div class="mode-btn" onclick="selectEffect('rainbow')">🌈 Arc-en-Ciel</div>
-      <div class="mode-btn" onclick="selectEffect('flash')">⚡ Flash RGB</div>
-      <div class="mode-btn" onclick="selectEffect('wave')">🌊 Effet Vague</div>
+      <div class="mode-btn" onclick="selectEffect('flash')">⚡ Flash</div>
+      <div class="mode-btn" onclick="selectEffect('wave')">🌊 Vague</div>
       <div class="mode-btn" onclick="selectEffect('pulse')">💓 Pulsation</div>
       <div class="mode-btn" onclick="selectEffect('strobe')">🔦 Stroboscope</div>
     </div>
 
-    <!-- Section BPM et multiplicateurs -->
-    <h3>BPM & Multiplicateurs</h3>
+    <!-- Contrôles BPM -->
     <div class="bpm-section">
       <label>
-        <input type="checkbox" id="bpmToggle"> Activer BPM
+        <input type="checkbox" id="bpmToggle"> 🎚️ Synchronisation BPM
       </label>
       <div class="bpm-controls" id="bpmControls" style="display: none;">
         <input type="number" id="bpmInput" placeholder="BPM" value="120" min="1">
@@ -138,104 +158,107 @@
         <div class="multiplier-btn" onclick="setMultiplier(0.5)">x1/2</div>
         <div class="multiplier-btn" onclick="setMultiplier(1)">x1</div>
         <div class="multiplier-btn" onclick="setMultiplier(2)">x2</div>
-        <div class="multiplier-btn" onclick="setMultiplier(4)">x4</div>
+        <div class="multiplier-btn" onclick="startTapTempo()">🎧 Tap</div>
       </div>
     </div>
   </div>
 
   <script>
-    // Variables globales pour suivre l'état
     let currentEffect = '';
     let currentMultiplier = 1;
     let currentBPM = 120;
+    let tapTimes = [];
 
-    // Active/désactive la section BPM
-    document.getElementById('bpmToggle').addEventListener('change', function() {
-      document.getElementById('bpmControls').style.display = this.checked ? 'flex' : 'none';
-      // Lors de l'activation/désactivation, on met à jour la durée d'animation si un effet animé est actif
-      updateCurrentEffectDuration();
-    });
-
-    // Appliquer la couleur choisie (la couleur s'applique aussi au titre)
+    // Gestion des couleurs
     function applyColor() {
       const color = document.getElementById("colorPicker").value;
-      console.log("Couleur envoyée:", color);
       updateTitleStyle({ color: color });
-      // Exemple d'envoi vers l'ESP32 :
-      // fetch(`/color?r=${parseInt(color.substr(1,2),16)}&g=${parseInt(color.substr(3,2),16)}&b=${parseInt(color.substr(5,2),16)}`);
+      if(currentEffect === 'constant') sendToESP(`/color?hex=${color.replace('#','')}`);
+      showStatusFeedback();
     }
 
-    // Sélectionner un effet et appliquer l'animation appropriée au titre
+    function setPresetColor(color) {
+      document.getElementById("colorPicker").value = color;
+      applyColor();
+    }
+
+    // Gestion des effets
     function selectEffect(effect) {
       const titleEl = document.getElementById('title');
-      // Réinitialiser les classes et styles d'animation du titre
-      titleEl.classList.remove('strobe', 'rainbow', 'pulse', 'flash');
-      titleEl.style.animation = '';
-      titleEl.style.animationDuration = '';
-      titleEl.style.color = "white";
+      titleEl.className = '';
+      titleEl.style.cssText = 'color: white; animation: none;';
+      
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active-mode'));
+      event.target.classList.add('active-mode');
       
       currentEffect = effect;
-      titleEl.textContent = "Effet: " + effect;
+      titleEl.textContent = `Mode: ${effect.charAt(0).toUpperCase() + effect.slice(1)}`;
       
-      // Si BPM est activé, on calcule la durée (durée en secondes = 60 / (BPM * multiplicateur))
-      let duration = null;
-      if(document.getElementById('bpmToggle').checked) {
-        duration = 60 / (currentBPM * currentMultiplier) + 's';
-      }
-      
-      // Appliquer l'effet et l'animation associée
-      if (effect === 'strobe') {
-        titleEl.classList.add('strobe');
-      } else if (effect === 'rainbow') {
-        titleEl.classList.add('rainbow');
-        if(duration) titleEl.style.animationDuration = duration;
-      } else if (effect === 'pulse') {
-        titleEl.classList.add('pulse');
-        if(duration) titleEl.style.animationDuration = duration;
-      } else if (effect === 'flash') {
-        titleEl.classList.add('flash');
-        if(duration) titleEl.style.animationDuration = duration;
+      if(effect !== 'constant') {
+        titleEl.classList.add(effect.toLowerCase());
+        updateCurrentEffectDuration();
+        sendToESP(`/effect?name=${effect}`);
       } else {
-        // Pour des effets sans animation sur le titre (ex: wave), on affiche simplement le texte
-        titleEl.textContent = "Effet: " + effect;
+        sendToESP('/effect?name=constant');
+        applyColor();
       }
-      
-      // Exemple d'envoi vers l'ESP32 :
-      // fetch(`/effect?name=${effect}`);
     }
 
-    // Définir le multiplicateur BPM et mettre à jour l'affichage du titre
+    // Gestion BPM
     function setMultiplier(multiplier) {
+      document.querySelectorAll('.multiplier-btn').forEach(btn => btn.classList.remove('active-multiplier'));
+      event.target.classList.add('active-multiplier');
+      
       currentMultiplier = multiplier;
       currentBPM = parseInt(document.getElementById("bpmInput").value) || 120;
-      const titleEl = document.getElementById('title');
-      titleEl.textContent = "Effet: " + currentEffect + " | BPM: " + currentBPM + " x" + currentMultiplier;
-      console.log("BPM réglé sur:", currentBPM, "Multiplicateur:", currentMultiplier);
       updateCurrentEffectDuration();
-      
-      // Exemple d'envoi vers l'ESP32 :
-      // fetch(`/bpm?value=${currentBPM}&multiplier=${currentMultiplier}`)
+      sendToESP(`/bpm?value=${currentBPM}&multiplier=${currentMultiplier}`);
     }
 
-    // Met à jour la durée d'animation du titre pour l'effet actif si BPM est activé
+    function startTapTempo() {
+      const now = Date.now();
+      tapTimes = tapTimes.filter(t => now - t < 2000);
+      tapTimes.push(now);
+      
+      if(tapTimes.length > 3) {
+        const average = tapTimes.slice(-4).reduce((a, b, i, arr) => i ? a + (b - arr[i-1]) : 0) / 3;
+        document.getElementById("bpmInput").value = Math.round(60000 / average);
+        setMultiplier(currentMultiplier);
+      }
+    }
+
     function updateCurrentEffectDuration() {
       const titleEl = document.getElementById('title');
-      if(document.getElementById('bpmToggle').checked && currentBPM && currentMultiplier && currentEffect) {
-         let duration = 60 / (currentBPM * currentMultiplier) + 's';
-         titleEl.style.animationDuration = duration;
-      } else {
-         // Si BPM n'est pas activé, on peut réinitialiser l'animationDuration (les valeurs par défaut définies en CSS s'appliquent)
-         titleEl.style.animationDuration = '';
+      if(document.getElementById('bpmToggle').checked) {
+        const duration = 60 / (currentBPM * currentMultiplier) + 's';
+        titleEl.style.animationDuration = duration;
       }
     }
 
-    // Met à jour la couleur du titre (utilisé lors de l'application manuelle de couleur)
-    function updateTitleStyle(options) {
-      const titleEl = document.getElementById('title');
-      if (options.color) {
-        titleEl.style.color = options.color;
-      }
+    // Communication ESP32
+    function sendToESP(url) {
+      fetch(url)
+        .then(response => {
+          if(!response.ok) throw new Error('Erreur réseau');
+          showStatusFeedback();
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById('title').classList.add('error-flash');
+          setTimeout(() => title.classList.remove('error-flash'), 1000);
+        });
     }
+
+    function showStatusFeedback() {
+      document.getElementById('title').classList.add('command-active');
+      setTimeout(() => title.classList.remove('command-active'), 300);
+    }
+
+    // Initialisation
+    document.getElementById('bpmToggle').addEventListener('change', function() {
+      document.getElementById('bpmControls').style.display = this.checked ? 'flex' : 'none';
+      updateCurrentEffectDuration();
+    });
   </script>
 </body>
 </html>
