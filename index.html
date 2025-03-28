@@ -11,20 +11,59 @@
       background: #222;
       color: white;
     }
-    /* Style du titre interactif */
+    /* Titre interactif */
     h2 {
       font-size: 32px;
       transition: all 0.3s ease;
     }
-    /* Animation pour le mode stroboscope */
-    .strobe {
-      animation: strobeAnim 1s infinite;
+    /* Animations pour le titre */
+    @keyframes rainbowAnim {
+      0%   { color: red; }
+      20%  { color: orange; }
+      40%  { color: yellow; }
+      60%  { color: green; }
+      80%  { color: blue; }
+      100% { color: violet; }
     }
+    .rainbow {
+      animation-name: rainbowAnim;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+      /* animation-duration sera défini via JS en fonction du BPM */
+    }
+
+    @keyframes pulseAnim {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.5; }
+    }
+    .pulse {
+      animation-name: pulseAnim;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
+      /* animation-duration sera défini via JS en fonction du BPM */
+    }
+
+    @keyframes flashAnim {
+      0%, 100% { color: white; }
+      50% { color: red; }
+    }
+    .flash {
+      animation-name: flashAnim;
+      animation-timing-function: steps(2, start);
+      animation-iteration-count: infinite;
+      /* animation-duration sera défini via JS en fonction du BPM */
+    }
+
+    /* Déjà présent */
     @keyframes strobeAnim {
       0% { opacity: 1; }
       50% { opacity: 0; }
       100% { opacity: 1; }
     }
+    .strobe {
+      animation: strobeAnim 1s infinite;
+    }
+
     .container {
       display: flex;
       flex-direction: column;
@@ -94,7 +133,7 @@
         <input type="checkbox" id="bpmToggle"> Activer BPM
       </label>
       <div class="bpm-controls" id="bpmControls" style="display: none;">
-        <input type="number" id="bpmInput" placeholder="BPM" value="120">
+        <input type="number" id="bpmInput" placeholder="BPM" value="120" min="1">
         <div class="multiplier-btn" onclick="setMultiplier(0.25)">x1/4</div>
         <div class="multiplier-btn" onclick="setMultiplier(0.5)">x1/2</div>
         <div class="multiplier-btn" onclick="setMultiplier(1)">x1</div>
@@ -110,61 +149,87 @@
     let currentMultiplier = 1;
     let currentBPM = 120;
 
-    // Active ou désactive la section BPM en fonction de la case à cocher
+    // Active/désactive la section BPM
     document.getElementById('bpmToggle').addEventListener('change', function() {
       document.getElementById('bpmControls').style.display = this.checked ? 'flex' : 'none';
+      // Lors de l'activation/désactivation, on met à jour la durée d'animation si un effet animé est actif
+      updateCurrentEffectDuration();
     });
 
-    // Appliquer la couleur sélectionnée et mettre à jour le titre
+    // Appliquer la couleur choisie (la couleur s'applique aussi au titre)
     function applyColor() {
       const color = document.getElementById("colorPicker").value;
       console.log("Couleur envoyée:", color);
       updateTitleStyle({ color: color });
-      // Exemple d'envoi vers l'ESP32 : 
+      // Exemple d'envoi vers l'ESP32 :
       // fetch(`/color?r=${parseInt(color.substr(1,2),16)}&g=${parseInt(color.substr(3,2),16)}&b=${parseInt(color.substr(5,2),16)}`);
     }
 
-    // Sélectionner un effet et mettre à jour l'apparence du titre
+    // Sélectionner un effet et appliquer l'animation appropriée au titre
     function selectEffect(effect) {
       const titleEl = document.getElementById('title');
-      // Supprimer toute classe ou style d'effet précédent
-      titleEl.classList.remove('strobe');
+      // Réinitialiser les classes et styles d'animation du titre
+      titleEl.classList.remove('strobe', 'rainbow', 'pulse', 'flash');
       titleEl.style.animation = '';
+      titleEl.style.animationDuration = '';
       titleEl.style.color = "white";
       
       currentEffect = effect;
       titleEl.textContent = "Effet: " + effect;
       
-      // Appliquer un style spécifique selon l'effet
-      if (effect === 'strobe') {
-        titleEl.classList.add('strobe');
-      } else if (effect === 'flash') {
-        titleEl.style.color = "#ffff00"; // Jaune pour flash
-      } else if (effect === 'wave') {
-        titleEl.style.color = "#00ffff"; // Cyan pour vague
-      } else if (effect === 'pulse') {
-        titleEl.style.color = "#ff00ff"; // Magenta pour pulsation
+      // Si BPM est activé, on calcule la durée (durée en secondes = 60 / (BPM * multiplicateur))
+      let duration = null;
+      if(document.getElementById('bpmToggle').checked) {
+        duration = 60 / (currentBPM * currentMultiplier) + 's';
       }
       
-      // Exemple d'envoi vers l'ESP32 : 
-      // fetch(`/effect?name=${effect}`)
-      //   .then(response => console.log("Effet envoyé:", effect));
+      // Appliquer l'effet et l'animation associée
+      if (effect === 'strobe') {
+        titleEl.classList.add('strobe');
+      } else if (effect === 'rainbow') {
+        titleEl.classList.add('rainbow');
+        if(duration) titleEl.style.animationDuration = duration;
+      } else if (effect === 'pulse') {
+        titleEl.classList.add('pulse');
+        if(duration) titleEl.style.animationDuration = duration;
+      } else if (effect === 'flash') {
+        titleEl.classList.add('flash');
+        if(duration) titleEl.style.animationDuration = duration;
+      } else {
+        // Pour des effets sans animation sur le titre (ex: wave), on affiche simplement le texte
+        titleEl.textContent = "Effet: " + effect;
+      }
+      
+      // Exemple d'envoi vers l'ESP32 :
+      // fetch(`/effect?name=${effect}`);
     }
 
-    // Définir le multiplicateur BPM et mettre à jour le titre
+    // Définir le multiplicateur BPM et mettre à jour l'affichage du titre
     function setMultiplier(multiplier) {
       currentMultiplier = multiplier;
-      currentBPM = document.getElementById("bpmInput").value;
+      currentBPM = parseInt(document.getElementById("bpmInput").value) || 120;
       const titleEl = document.getElementById('title');
       titleEl.textContent = "Effet: " + currentEffect + " | BPM: " + currentBPM + " x" + currentMultiplier;
       console.log("BPM réglé sur:", currentBPM, "Multiplicateur:", currentMultiplier);
+      updateCurrentEffectDuration();
       
-      // Exemple d'envoi vers l'ESP32 : 
+      // Exemple d'envoi vers l'ESP32 :
       // fetch(`/bpm?value=${currentBPM}&multiplier=${currentMultiplier}`)
-      //   .then(response => console.log("BPM envoyé"));
     }
 
-    // Mettre à jour le style du titre (par exemple la couleur)
+    // Met à jour la durée d'animation du titre pour l'effet actif si BPM est activé
+    function updateCurrentEffectDuration() {
+      const titleEl = document.getElementById('title');
+      if(document.getElementById('bpmToggle').checked && currentBPM && currentMultiplier && currentEffect) {
+         let duration = 60 / (currentBPM * currentMultiplier) + 's';
+         titleEl.style.animationDuration = duration;
+      } else {
+         // Si BPM n'est pas activé, on peut réinitialiser l'animationDuration (les valeurs par défaut définies en CSS s'appliquent)
+         titleEl.style.animationDuration = '';
+      }
+    }
+
+    // Met à jour la couleur du titre (utilisé lors de l'application manuelle de couleur)
     function updateTitleStyle(options) {
       const titleEl = document.getElementById('title');
       if (options.color) {
